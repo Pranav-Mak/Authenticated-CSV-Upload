@@ -9,12 +9,18 @@ export interface JwtUser {
 }
 
 export function requireAuth(req: Request, res: Response, next: NextFunction){
+    let token = undefined;
     const header = req.header('Authorization')
-    if(!header?.startsWith('Bearer')){
-        return res.status(401).json({ error: 'Missing or invalid Authorization header' });
+    if(header?.startsWith('Bearer')){
+        token = header.slice(7);
     }
+    if (!token && req.cookies?.token) {
+        token = req.cookies.token;
+    }
+    if (!token) {
+    return res.status(401).json({ error: 'Missing or invalid token' });
+    }  
     try{
-        const token = header.slice(7);
         const payload = jwt.verify(token, JWT_SECRET) as JwtUser
         (req as any).user = payload
         next()

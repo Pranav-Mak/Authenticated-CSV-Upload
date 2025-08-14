@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>CSV Uploader Test</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    input, button { margin: 5px; padding: 5px; }
+    pre { background: #f0f0f0; padding: 10px; }
+  </style>
+</head>
+<body>
+
+<h1>CSV Uploader Test</h1>
+
+<h2>1. Register</h2>
+<input id="regName" placeholder="Name"><br>
+<input id="regEmail" placeholder="Email"><br>
+<input id="regPassword" type="password" placeholder="Password"><br>
+<button onclick="register()">Register</button>
+<pre id="regResult"></pre>
+
+<h2>2. Login</h2>
+<input id="loginEmail" placeholder="Email"><br>
+<input id="loginPassword" type="password" placeholder="Password"><br>
+<button onclick="login()">Login</button>
+<pre id="loginResult"></pre>
+
+<h2>3. Upload CSV</h2>
+<input id="csvFile" type="file" accept=".csv"><br>
+<button onclick="uploadCSV()">Upload</button>
+<pre id="uploadResult"></pre>
+
+<h2>4. View Records</h2>
+<input id="filterName" placeholder="Filter by Name">
+<input id="filterEmail" placeholder="Filter by Email">
+<input id="page" type="number" value="1" min="1" style="width: 60px;">
+<input id="limit" type="number" value="20" min="1" style="width: 60px;">
+<button onclick="getRecords()">Get Records</button>
+<pre id="recordsResult"></pre>
+
+<h2>5. Download CSV</h2>
+<button onclick="downloadCSV()">Download</button>
+
+<script>
+let token = '';
+
+async function register() {
+  const res = await fetch('/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: document.getElementById('regName').value,
+      email: document.getElementById('regEmail').value,
+      password: document.getElementById('regPassword').value
+    })
+  });
+  document.getElementById('regResult').textContent = await res.text();
+}
+async function login() {
+  const res = await fetch('/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: document.getElementById('loginEmail').value,
+      password: document.getElementById('loginPassword').value
+    }),
+    credentials: 'include' 
+  });
+
+  const data = await res.json();
+  document.getElementById('loginResult').textContent = JSON.stringify(data, null, 2);
+}
+
+// Upload CSV
+async function uploadCSV() {
+  const file = document.getElementById('csvFile').files[0];
+  if (!file) return alert('Select a CSV file');
+  
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const res = await fetch('/upload', {
+    method: 'POST',
+    body: formData,
+    credentials: 'include' 
+  });
+
+  const text = await res.text();
+  document.getElementById('uploadResult').textContent = text;
+}
+
+// Get records
+async function getRecords() {
+  const page = document.getElementById('page').value;
+  const limit = document.getElementById('limit').value;
+  const name = document.getElementById('filterName').value;
+  const email = document.getElementById('filterEmail').value;
+
+  const params = new URLSearchParams();
+  if(page) params.append('page', page);
+  if(limit) params.append('limit', limit);
+  if(name) params.append('name', name);
+  if(email) params.append('email', email);
+
+  const res = await fetch('/records?' + params.toString(), {
+    credentials: 'include'
+  });
+  const data = await res.json();
+
+  // Show paginated info + records
+  let text = `Page: ${data.page} / Total: ${data.total} / Limit: ${data.limit}\n\n`;
+  data.items.forEach(r => {
+    text += `Name: ${r.name}, Email: ${r.email}, Phone: ${r.phone}, Uploaded: ${new Date(r.uploadedAt).toLocaleString()}\n`;
+  });
+  document.getElementById('recordsResult').textContent = text;
+}
+
+// Download CSV
+function downloadCSV() {
+  fetch('/records/download', {
+    credentials: 'include' 
+  })
+  .then(res => res.blob())
+  .then(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'records.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+</script>
+
+</body>
+</html>

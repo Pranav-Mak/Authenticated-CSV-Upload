@@ -6,17 +6,22 @@ import { authRouter } from './auth/auth.routes.js';
 import { uploadRouter } from './upload/uploads.routes.js';
 import { recordRouter } from './records/records.routes.js';
 import { errorHandler } from './middlewares/error.js';
+import path from 'path';
+import cookieParser from 'cookie-parser';
 
 
 const app = express()
 
+app.use(express.static(path.join(process.cwd(), 'public')));
+
 app.use(helmet())
 app.use(express.json())
 app.use(requestLogger)
+app.use(cookieParser());
 
-app.get('/auth', authRouter)
-app.get('/upload', uploadRouter)
-app.get('/records',recordRouter)
+app.use('/auth', authRouter)
+app.use('/upload', uploadRouter)
+app.use('/records',recordRouter)
 
 app.use(errorHandler)
 

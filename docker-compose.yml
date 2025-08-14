@@ -1,0 +1,32 @@
+services:
+  app:
+    build: .
+    container_name: csv-app
+    env_file: ./.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    volumes:
+      - uploads:/uploads
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    container_name: csv-db
+    environment:
+      POSTGRES_DB: csvdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d csvdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  dbdata:
+  uploads:

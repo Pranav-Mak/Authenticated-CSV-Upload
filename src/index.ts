@@ -19,9 +19,9 @@ app.use(express.json())
 app.use(requestLogger)
 app.use(cookieParser());
 
-app.use('/auth', authRouter)
-app.use('/upload', uploadRouter)
-app.use('/records',recordRouter)
+app.use('/api/auth', authRouter)
+app.use('/api/upload', uploadRouter)
+app.use('/api/records',recordRouter)
 
 app.use(errorHandler)
 

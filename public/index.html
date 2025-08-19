@@ -46,7 +46,7 @@
 let token = '';
 
 async function register() {
-  const res = await fetch('/auth/register', {
+  const res = await fetch('/api/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -58,7 +58,7 @@ async function register() {
   document.getElementById('regResult').textContent = await res.text();
 }
 async function login() {
-  const res = await fetch('/auth/login', {
+  const res = await fetch('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -80,7 +80,7 @@ async function uploadCSV() {
   const formData = new FormData();
   formData.append('file', file);
   
-  const res = await fetch('/upload', {
+  const res = await fetch('/api/upload', {
     method: 'POST',
     body: formData,
     credentials: 'include' 
@@ -103,7 +103,7 @@ async function getRecords() {
   if(name) params.append('name', name);
   if(email) params.append('email', email);
 
-  const res = await fetch('/records?' + params.toString(), {
+  const res = await fetch('/api/records?' + params.toString(), {
     credentials: 'include'
   });
   const data = await res.json();
@@ -118,7 +118,7 @@ async function getRecords() {
 
 // Download CSV
 function downloadCSV() {
-  fetch('/records/download', {
+  fetch('/api/records/download', {
     credentials: 'include' 
   })
   .then(res => res.blob())
